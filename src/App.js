@@ -1,12 +1,12 @@
 /* eslint-disable */
 import "./index.css";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 
 const generateId = (() => {
-  let count = 0;
+  let count = 1;
 
   return () => {
-    return ++count;
+    return count++;
   };
 })();
 
@@ -18,37 +18,37 @@ const generateId = (() => {
  */
 
 export default function App() {
-  const [todos, changeTodos] = useState([]);
-  const [value, changeValue] = useState("");
+  const [todos, setTodos] = useState([]);
+  const [value, setValue] = useState("");
   const inputRef = useRef("foo");
   const addTodo = () => {
     const newTodo = {
       text: value,
       id: generateId(),
+      complete: false,
     };
-    todos.unshift(newTodo);
-
-    changeTodos(todos);
+    todos.push(newTodo);
+    setTodos(todos);
+    setValue("");
   };
 
   const handleDelete = (id) => {
-    if (todos.includes(id)) {
-      const newTodos = todos.filter((todo) => todo.id != id);
-      changeTodos(newTodos);
+    if (window.confirm("Are you sure to delete this list?")) {
+      const newTodos = todos.filter((todo) => todo.id !== id);
+      setTodos(newTodos);
     }
   };
 
-  const handleComplete = (id, index) => {
-    const item = todos.find((item, ii) => ii === index);
-    item.complete = true;
-    changeTodos(todos);
+  const handleComplete = (id) => {
+    setTodos(
+      todos.map((item) => {
+        if (item.id === id) {
+          return { ...item, complete: !item.complete };
+        }
+        return item;
+      })
+    );
   };
-
-  useEffect(() => {
-    // inputRef.current.focus();
-
-    return () => changeValue("");
-  }, []);
 
   return (
     <div className="App">
@@ -57,19 +57,36 @@ export default function App() {
       <input
         ref={inputRef}
         value={value}
-        onChange={(ev) => changeValue(ev.target.value)}
+        onChange={(e) => setValue(e.target.value)}
       />
-      <button onClick={addTodo}>Add</button>
+      <button className="button-add" onClick={addTodo}>
+        Add
+      </button>
 
-      {todos.map((todo, index) => (
-        <li key={todo.id}>
-          {todo.complete ? <strike>{todo.text}</strike> : todo.text}
-          <button onClick={() => handleComplete(todo.id, index)}>
-            complete
-          </button>
-          <button onClick={() => handleDelete(todo.id)}>delete</button>
-        </li>
-      ))}
+      {todos &&
+        todos.map((todo) => (
+          <li key={todo.id}>
+            {todo.complete ? (
+              <strike className="strike-red">{todo.text}</strike>
+            ) : (
+              todo.text
+            )}
+            <button
+              className={
+                !todo.complete ? "button-complete" : "button-incomplete"
+              }
+              onClick={() => handleComplete(todo.id)}
+            >
+              {todo.complete ? "Incomplete" : "Complete"}
+            </button>
+            <button
+              className="button-delete"
+              onClick={() => handleDelete(todo.id)}
+            >
+              Delete
+            </button>
+          </li>
+        ))}
     </div>
   );
 }
